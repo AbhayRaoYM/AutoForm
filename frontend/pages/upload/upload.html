@@ -1,280 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoForm — Upload Document</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="upload.css">
-    <link rel="stylesheet" href="../../css/navigation.css">
-    <!-- AutoForm favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
-    <link rel="shortcut icon" href="/favicons/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoForm — Upload Document</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="upload.css">
+<link rel="stylesheet" href="../../css/navigation.css">
+<!-- AutoForm favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
+<link rel="shortcut icon" href="/favicons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
 </head>
-
 <body>
-
 <header class="topbar">
-    <div class="topbar-inner">
-        <a class="brand" href="../dashboard/dashboard.html">
-            <span class="brand-mark">A</span>
-            <span>AutoForm</span>
-        </a>
-
-        <nav class="nav">
-            <a href="../dashboard/dashboard.html">Dashboard</a>
-            <a class="active" href="upload.html">Documents</a>
-            <a href="../autofill/autofill.html">Forms</a>
-            <a href="../profile/profile.html">Profile</a>
-        </nav>
-
-        <div class="user-area">
-            
-            <button
-                style="cursor: pointer;"
-                class="avatar"
-                id="avatarButton"
-                type="button"
-            >
-                U
-            </button>
-
-            <div
-                class="user-menu"
-                id="userMenu"
-                hidden
-            >
-                <a href="../dashboard/dashboard.html">
-                    Dashboard
-                </a>
-
-                <button id="logoutButton" type="button">
-                    Sign out
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="topbar-inner">
+<a class="brand" href="../dashboard/dashboard.html">
+<span class="brand-mark">A</span>
+<span>AutoForm</span>
+</a>
+<nav class="nav">
+<a href="../dashboard/dashboard.html">Dashboard</a>
+<a class="active" href="upload.html">Documents</a>
+<a href="../autofill/autofill.html">Forms</a>
+<a href="../profile/profile.html">Profile</a>
+</nav>
+<div class="user-area">
+<button
+    style="cursor: pointer;"
+    class="avatar"
+    id="avatarButton"
+    type="button"
+>
+    U
+</button>
+<div
+    class="user-menu"
+    id="userMenu"
+    hidden
+>
+<a href="../dashboard/dashboard.html">
+    Dashboard
+</a>
+<button id="logoutButton" type="button">
+    Sign out
+</button>
+</div>
+</div>
+</div>
 </header>
-
 <main class="page">
+<section class="heading">
+<p class="eyebrow">IDENTITY DOCUMENTS</p>
+<h1>Upload a document</h1>
+<p>
+    Upload an identity document. AutoForm will extract
+    information and show it to you for review before
+    anything is saved to your profile.
+</p>
+</section>
+<section class="card">
+<div class="steps">
+<div class="step active" id="stepUpload">
+<span>1</span>
+<strong>Upload</strong>
+</div>
+<div class="line"></div>
+<div class="step" id="stepReview">
+<span>2</span>
+<strong>Preview &amp; review</strong>
+</div>
+<div class="line"></div>
+<div class="step" id="stepConsent">
+<span>3</span>
+<strong>Consent</strong>
+</div>
+<div class="line"></div>
+<div class="step" id="stepSaved">
+<span>4</span>
+<strong>Saved</strong>
+</div>
+</div>
+<!-- UPLOAD STATE -->
+<section class="state upload-state" id="uploadState">
+<div
+    class="upload-area"
+    id="uploadArea"
+    role="button"
+    tabindex="0"
+    aria-label="Upload identity document"
+>
+<input
+    type="file"
+    id="documentFile"
+    name="documentFile"
+    accept=".pdf,.jpg,.jpeg,.png"
+    hidden
+>
+<div class="upload-icon" aria-hidden="true">↑</div>
+<h2>Drop your document here</h2>
+<p>or choose a file from your device</p>
+<label
+    for="documentFile"
+    class="choose-document-button"
+>
+    Choose document
+</label>
+<small>PDF, JPG, JPEG or PNG · Maximum 10 MB</small>
+</div>
+<div
+    class="selected-file"
+    id="selectedFile"
+    hidden
+>
+<div class="file-icon" id="fileIcon">FILE</div>
+<div class="file-details">
+<strong id="fileName"></strong>
+<span id="fileSize"></span>
+</div>
+<button
+    id="removeButton"
+    class="remove-button"
+    type="button"
+>
+    Remove
+</button>
+</div>
+<div class="privacy-note">
+<span>✓</span>
+<div>
+<strong>Consent before storage &amp; ephemeral memory processing</strong>
+<p>
+    Extraction happens in-memory with zero-knowledge privacy. Your extracted
+    identity information is never saved to your
+    profile until you explicitly consent.
+</p>
+</div>
+</div>
+<div class="form-error" id="uploadError"></div>
+<button
+    id="extractButton"
+    class="primary-button"
+    type="button"
+    disabled
+>
+<span id="extractButtonText">Extract information</span>
+<span id="extractSpinner" class="spinner" hidden></span>
+</button>
+</section>
 
-    <section class="heading">
-        <p class="eyebrow">IDENTITY DOCUMENTS</p>
-        <h1>Upload a document</h1>
-        <p>
-            Upload an identity document. AutoForm will extract
-            information and show it to you for review before
-            anything is saved to your profile.
-        </p>
-    </section>
+<!-- PROCESSING STATE -->
+<section
+    class="state processing-state"
+    id="processingState"
+    hidden
+>
+<div class="loader"></div>
+<p class="eyebrow">PROCESSING</p>
+<h2>Extracting information</h2>
+<p>Please wait while AutoForm reads your document.</p>
+<small>Nothing is being added to your profile yet.</small>
+</section>
 
-    <section class="card">
+<!-- PREVIEW & REVIEW STATE -->
+<section class="state review-state" id="reviewState" hidden>
+<div class="review-heading">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+<div>
+<p class="eyebrow">PREVIEW &amp; REVIEW</p>
+<h2>Check your document</h2>
+</div>
+<span class="security-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #eef4f8; color: var(--navy); border: 1px solid #d0dbe5; border-radius: 20px; font-size: 11px; font-weight: 600;">
+🛡️ TLS Encrypted Session
+</span>
+</div>
+<p>Review the document and correct extracted values before giving consent.</p>
+</div>
+<div class="quality-summary" id="qualitySummary" aria-live="polite">
+<div class="quality-indicator">
+<span class="quality-dot" id="qualityDot"></span>
+<strong id="qualityLabel">Quality not assessed</strong>
+</div>
+<div class="quality-reasons" id="qualityReasons" hidden></div>
+</div>
+<div class="document-preview">
+<h3>Uploaded document</h3>
+<div class="preview-frame" id="previewFrame">
+<div class="document-image-wrap" id="documentImageWrap" hidden>
+<img id="documentPreviewImage" alt="Preview of the uploaded document" hidden>
+<svg id="boundingBoxOverlay" class="bounding-box-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"></svg>
+</div>
+<iframe id="documentPreviewPdf" title="Uploaded PDF preview" hidden></iframe>
+<p id="previewFallback" hidden>Preview is unavailable for this file. You can still review and edit the extracted details below.</p>
+</div>
+<p class="preview-note">Red boxes highlight fields that may need your attention. Please verify these details against your original document.</p>
+</div>
+<div class="review-details">
+<div class="review-details-heading">
+<h3>Extracted details</h3>
+<p>Check the values below. You can edit existing values or add a missing field.</p>
+</div>
+<div id="reviewFields" class="review-fields"></div>
+<button type="button" class="add-field-button" id="addReviewFieldButton" hidden>+ Add missing field</button>
+<p class="review-edit-note" id="reviewEditNote" hidden>Your changes will be included in the consent summary.</p>
+</div>
+<div class="review-actions">
+<button type="button" class="review-secondary-button" id="reuploadDocumentButton">Re-upload document</button>
+<button type="button" class="review-secondary-button" id="editDetailsButton">Edit details manually</button>
+<button type="button" class="primary-button" id="proceedConsentButton">Proceed to consent</button>
+</div>
+<p class="review-privacy-note">Nothing is saved to your profile until you explicitly consent.</p>
+</section>
 
-        <div class="steps">
-            <div class="step active" id="stepUpload">
-                <span>1</span>
-                <strong>Upload</strong>
-            </div>
-            <div class="line"></div>
-
-            <div class="step" id="stepReview">
-                <span>2</span>
-                <strong>Preview &amp; review</strong>
-            </div>
-            <div class="line"></div>
-
-            <div class="step" id="stepConsent">
-                <span>3</span>
-                <strong>Consent</strong>
-            </div>
-            <div class="line"></div>
-
-            <div class="step" id="stepSaved">
-                <span>4</span>
-                <strong>Saved</strong>
-            </div>
-        </div>
-
-        <!-- UPLOAD STATE -->
-        <section class="state upload-state" id="uploadState">
-
-            <div
-                class="upload-area"
-                id="uploadArea"
-                role="button"
-                tabindex="0"
-                aria-label="Upload identity document"
-            >
-                <input
-                    type="file"
-                    id="documentFile"
-                    name="documentFile"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    hidden
-                >
-
-                <div class="upload-icon" aria-hidden="true">↑</div>
-
-                <h2>Drop your document here</h2>
-                <p>or choose a file from your device</p>
-
-                <label
-                    for="documentFile"
-                    class="choose-document-button"
-                >
-                    Choose document
-                </label>
-
-                <small>PDF, JPG, JPEG or PNG · Maximum 10 MB</small>
-            </div>
-
-            <div
-                class="selected-file"
-                id="selectedFile"
-                hidden
-            >
-                <div class="file-icon" id="fileIcon">FILE</div>
-
-                <div class="file-details">
-                    <strong id="fileName"></strong>
-                    <span id="fileSize"></span>
-                </div>
-
-                <button
-                    id="removeButton"
-                    class="remove-button"
-                    type="button"
-                >
-                    Remove
-                </button>
-            </div>
-
-            <div class="privacy-note">
-                <span>✓</span>
-                <div>
-                    <strong>Consent before storage</strong>
-                    <p>
-                        Extraction happens first. Your extracted
-                        identity information is not saved to your
-                        profile until you explicitly consent.
-                    </p>
-                </div>
-            </div>
-
-            <div class="form-error" id="uploadError"></div>
-
-            <button
-                id="extractButton"
-                class="primary-button"
-                type="button"
-                disabled
-            >
-                <span id="extractButtonText">Extract information</span>
-                <span id="extractSpinner" class="spinner" hidden></span>
-            </button>
-
-        </section>
-
-        <!-- PROCESSING STATE -->
-        <section
-            class="state processing-state"
-            id="processingState"
-            hidden
-        >
-            <div class="loader"></div>
-            <p class="eyebrow">PROCESSING</p>
-            <h2>Extracting information</h2>
-            <p>Please wait while AutoForm reads your document.</p>
-            <small>Nothing is being added to your profile yet.</small>
-        </section>
-
-        <!-- PREVIEW & REVIEW STATE (new; existing upload/processing/saved states remain) -->
-        <section class="state review-state" id="reviewState" hidden>
-            <div class="review-heading">
-                <p class="eyebrow">PREVIEW &amp; REVIEW</p>
-                <h2>Check your document</h2>
-                <p>Review the document and correct extracted values before giving consent.</p>
-            </div>
-
-            <div class="quality-summary" id="qualitySummary" aria-live="polite">
-                <div class="quality-indicator">
-                    <span class="quality-dot" id="qualityDot"></span>
-                    <strong id="qualityLabel">Quality not assessed</strong>
-                </div>
-                <div class="quality-reasons" id="qualityReasons" hidden></div>
-            </div>
-
-            <div class="document-preview">
-                <h3>Uploaded document</h3>
-                <div class="preview-frame" id="previewFrame">
-                    <div class="document-image-wrap" id="documentImageWrap" hidden>
-                        <img id="documentPreviewImage" alt="Preview of the uploaded document" hidden>
-                        <svg id="boundingBoxOverlay" class="bounding-box-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"></svg>
-                    </div>
-                    <iframe id="documentPreviewPdf" title="Uploaded PDF preview" hidden></iframe>
-                    <p id="previewFallback" hidden>Preview is unavailable for this file. You can still review and edit the extracted details below.</p>
-                </div>
-                <p class="preview-note">Red boxes highlight fields that may need your attention. Please verify these details against your original document.</p>
-            </div>
-
-            <div class="review-details">
-                <div class="review-details-heading">
-                    <h3>Extracted details</h3>
-                    <p>Check the values below. You can edit existing values or add a missing field.</p>
-                </div>
-                <div id="reviewFields" class="review-fields"></div>
-                <button type="button" class="add-field-button" id="addReviewFieldButton" hidden>+ Add missing field</button>
-                <p class="review-edit-note" id="reviewEditNote" hidden>Your changes will be included in the consent summary.</p>
-            </div>
-
-            <div class="review-actions">
-                <button type="button" class="review-secondary-button" id="reuploadDocumentButton">Re-upload document</button>
-                <button type="button" class="review-secondary-button" id="editDetailsButton">Edit details manually</button>
-                <button type="button" class="primary-button" id="proceedConsentButton">Proceed to consent</button>
-            </div>
-            <p class="review-privacy-note">Nothing is saved to your profile until you explicitly consent.</p>
-        </section>
-
-        <!-- SAVED STATE -->
-        <section
-            class="state saved-state"
-            id="savedState"
-            hidden
-        >
-            <div class="success-icon">✓</div>
-            <p class="eyebrow">SAVED</p>
-            <h2>Information saved</h2>
-            <p>
-                Your consent was recorded and the approved
-                information has been added to your profile.
-            </p>
-
-            <div class="saved-actions">
-                <a
-                    class="secondary-link"
-                    href="../profile/profile.html"
-                >
-                    View profile
-                </a>
-
-                <button
-                    class="primary-button"
-                    id="uploadAnotherButton"
-                    type="button"
-                >
-                    Upload another document
-                </button>
-            </div>
-        </section>
-
-    </section>
+<!-- SAVED STATE -->
+<section
+    class="state saved-state"
+    id="savedState"
+    hidden
+>
+<div class="success-icon">✓</div>
+<p class="eyebrow">SAVED</p>
+<h2>Information saved</h2>
+<p>
+    Your consent was recorded and the approved
+    information has been added to your profile.
+</p>
+<div class="saved-actions">
+<a
+    class="secondary-link"
+    href="../profile/profile.html"
+>
+    View profile
+</a>
+<button
+    class="primary-button"
+    id="uploadAnotherButton"
+    type="button"
+>
+    Upload another document
+</button>
+</div>
+<div style="margin-top: 20px;">
+<a href="../activity/activity.html" style="font-size: 12px; color: #55708f; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+🛡️ View this event in your Security Activity Log &rarr;
+</a>
+</div>
+</section>
+</section>
 </main>
 
 <!-- CONSENT MODAL -->
@@ -283,81 +259,74 @@
     id="consentModal"
     hidden
 >
-    <section
-        class="consent-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="consentTitle"
-    >
-        <div class="consent-header">
-            <div class="consent-icon">!</div>
-            <div>
-                <p class="eyebrow">YOUR CONSENT</p>
-                <h2 id="consentTitle">Review before saving</h2>
-            </div>
-        </div>
-
-        <p class="consent-intro">
-            AutoForm has extracted the following information from
-            your document. Please review it carefully.
-        </p>
-
-        <div class="consent-fields" id="consentFields"></div>
-
-        <div class="consent-warning">
-            <strong>Nothing has been saved yet.</strong>
-            <p>
-                Your information will only be added to your
-                identity profile if you explicitly choose
-                “Consent &amp; update profile”.
-            </p>
-        </div>
-
-        <label class="consent-check">
-            <input id="consentCheckbox" type="checkbox">
-            <span>
-                I have reviewed the extracted information and
-                consent to AutoForm securely storing it in my
-                identity profile for future autofill.
-            </span>
-        </label>
-
-        <div class="consent-error" id="consentError"></div>
-
-        <div class="consent-actions">
-            <button
-                class="decline-button"
-                id="goBackEditButton"
-                type="button"
-            >
-                Review and Edit
-            </button>
-
-            <button
-                class="decline-button"
-                id="declineConsentButton"
-                type="button"
-            >
-                Decline and Discard
-            </button>
-
-            <button
-                class="consent-button"
-                id="acceptConsentButton"
-                type="button"
-                disabled
-            >
-               I Consent &amp; save 
-            </button>
-        </div>
-    </section>
+<section
+    class="consent-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="consentTitle"
+>
+<div class="consent-header">
+<div class="consent-icon">!</div>
+<div>
+<p class="eyebrow">YOUR CONSENT</p>
+<h2 id="consentTitle">Review before saving</h2>
 </div>
-
+</div>
+<p class="consent-intro">
+    AutoForm has extracted the following information from
+    your document. Please review it carefully.
+</p>
+<div class="consent-fields" id="consentFields"></div>
+<div class="consent-warning">
+<strong>Nothing has been saved yet.</strong>
+<p>
+    Your information will only be added to your
+    identity profile if you explicitly choose
+    “I Consent &amp; save”.
+</p>
+<p style="margin-top: 6px; font-size: 10px; color: #4b5866; display: flex; align-items: center; gap: 5px;">
+<span>🛡️</span> <strong>Zero-Knowledge AES-256 Vault Protection:</strong> Profile fields are stored securely with zero-knowledge encryption.
+</p>
+</div>
+<label class="consent-check">
+<input id="consentCheckbox" type="checkbox">
+<span>
+    I have reviewed the extracted information and
+    consent to AutoForm securely storing it in my
+    identity profile for future autofill.
+</span>
+</label>
+<div class="consent-error" id="consentError"></div>
+<div class="consent-actions">
+<button
+    class="decline-button"
+    id="goBackEditButton"
+    type="button"
+>
+    Review and Edit
+</button>
+<button
+    class="decline-button"
+    id="declineConsentButton"
+    type="button"
+>
+    Decline and Discard
+</button>
+<button
+    class="consent-button"
+    id="acceptConsentButton"
+    type="button"
+    disabled
+>
+    I Consent &amp; save 
+</button>
+</div>
+</section>
+</div>
 <script src="../../js/config.js"></script>
-    <script src="../../js/api.js"></script>
+<script src="../../js/api.js"></script>
 <script src="../../js/auth.js"></script>
 <script src="upload.js"></script>
-
 <script src="../../js/navigation.js"></script>
 </body>
 </html>

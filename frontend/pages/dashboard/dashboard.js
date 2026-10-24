@@ -21,23 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profileFieldCount = document.getElementById("profileFieldCount");
     const formsFilledCount = document.getElementById("formsFilledCount");
 
-    // User menu
-    avatarButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        userMenu.hidden = !userMenu.hidden;
-    });
-
-    document.addEventListener("click", () => {
-        userMenu.hidden = true;
-    });
-
-    userMenu.addEventListener("click", (event) => {
-        event.stopPropagation();
-    });
-
-    logoutButton.addEventListener("click", () => {
-        logout();
-    });
+    // User menu handled globally by navigation.js
+    if (logoutButton) {
+        logoutButton.addEventListener("click", () => logout());
+    }
 
     // Default values until real data is loaded
     documentCount.textContent = "—";

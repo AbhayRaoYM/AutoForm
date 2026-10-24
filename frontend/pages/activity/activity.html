@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AutoForm — Activity Log</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="../dashboard/dashboard.css">
+    <link rel="stylesheet" href="../../css/navigation.css">
+    <link rel="stylesheet" href="activity.css">
+
+    <!-- AutoForm favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
+    <link rel="shortcut icon" href="/favicons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="topbar-inner">
+
+        <a class="brand" href="../dashboard/dashboard.html">
+            <span class="brand-mark">A</span>
+            <span>AutoForm</span>
+        </a>
+
+        <nav class="nav">
+            <a href="../dashboard/dashboard.html">Dashboard</a>
+            <a href="../upload/upload.html">Documents</a>
+            <a href="../autofill/autofill.html">Forms</a>
+            <a href="../profile/profile.html">Profile</a>
+        </nav>
+
+        <div class="user-area">
+            <span id="welcomeUser">Welcome</span>
+
+            <button
+                style="cursor: pointer;"
+                class="avatar"
+                id="avatarButton"
+                type="button"
+                aria-label="User menu"
+            >
+                U
+            </button>
+
+            <div
+                class="user-menu"
+                id="userMenu"
+                hidden
+            >
+                <a href="../profile/profile.html">
+                    Profile
+                </a>
+
+                <a href="activity.html" style="font-weight: 600; color: var(--navy);">
+                    🛡️ Activity Log
+                </a>
+
+                <button id="logoutButton" type="button">
+                    Sign out
+                </button>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+<main class="page">
+
+    <section class="hero-section">
+        <div>
+            <div class="breadcrumb">
+                <a href="../profile/profile.html">← Back to Profile</a>
+            </div>
+            <p class="eyebrow">AUDIT & PRIVACY TRAIL</p>
+            <h1>Security Activity Log</h1>
+            <p>
+                Complete immutable record of your account authentication, identity views, and document extractions.
+            </p>
+        </div>
+
+        <div class="hero-actions">
+            <button class="btn-refresh" id="refreshBtn" type="button">
+                🔄 Refresh Log
+            </button>
+        </div>
+    </section>
+
+    <!-- Mini Summary Cards -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Total Recorded Events</span>
+            <div class="stat-value" id="statTotalEvents">—</div>
+            <span class="stat-sub">Immutable audit entries</span>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-label">Last Successful Login</span>
+            <div class="stat-value stat-small" id="statLastLogin">—</div>
+            <span class="stat-sub" id="statLastLoginSub">System local time</span>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-label">Vault Security Status</span>
+            <div class="stat-value text-success" id="statVaultStatus">Encrypted</div>
+            <span class="stat-sub">Zero-Knowledge Protected</span>
+        </div>
+    </section>
+
+    <!-- Main Scrollable Audit Trail Card -->
+    <section class="activity-card">
+        <div class="activity-card-header">
+            <div>
+                <h2>Event History</h2>
+                <p>Scrollable ledger of recent security and access records.</p>
+            </div>
+            <div class="filter-controls">
+                <label for="eventFilter" class="filter-label">Filter:</label>
+                <select id="eventFilter" class="event-select">
+                    <option value="ALL">All Events</option>
+                    <option value="AUTH">Authentication (Logins/Logouts)</option>
+                    <option value="VIEW">Navigation & Views</option>
+                    <option value="PROFILE">Profile & Vault</option>
+                    <option value="DOC">Documents & Extraction</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Scrollable Table Wrapper -->
+        <div class="scrollable-table-wrapper">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 190px;">Timestamp</th>
+                        <th style="min-width: 180px;">Activity Event</th>
+                        <th style="min-width: 100px;">Status</th>
+                        <th style="min-width: 120px;">IP Address</th>
+                        <th style="min-width: 260px;">Event Details</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTableBody">
+                    <tr>
+                        <td colspan="5" class="table-loading">Loading activity history...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <span>AutoForm</span>
+    <span>Secure identity • Consent-based autofill</span>
+</footer>
+
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/navigation.js"></script>
+<script src="activity.js"></script>
+
+</body>
+</html>

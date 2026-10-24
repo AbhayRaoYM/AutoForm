@@ -1,27 +1,56 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pathlib import Path
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
+from backend.routes.admin_routes import router as admin_router
 from backend.routes.auth_routes import router as auth_router
 from backend.routes.document_routes import router as document_router
 from backend.routes.form_routes import router as form_router
 from backend.routes.profile_routes import router as profile_router
+from backend.security.headers_middleware import SecurityHeadersMiddleware
+from backend.services.token_service import setup_token_blacklist_ttl_index
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure MongoDB TTL index for revoked tokens
+    setup_token_blacklist_ttl_index()
+    yield
+
+
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
-    title="Major Project Unified API",
+    title="AutoForm Unified API",
     version="1.0.0",
-    description="Unified FastAPI backend with the working document extraction service plus placeholder routes for future integration.",
+    description="Privacy-focused, encrypted document extraction and autofill engine.",
+    lifespan=lifespan,
 )
 
+# SlowAPI rate limiting configuration
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -32,6 +61,7 @@ app.include_router(document_router)
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(form_router)
+app.include_router(admin_router)
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"

@@ -1,5 +1,19 @@
 // frontend/pages/register/register.js
 
+const passwordRegex =
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+function getMissingPasswordRequirements(pwd) {
+    const missing = [];
+    if (pwd.length < 8) missing.push("8+ characters");
+    if (!/[A-Z]/.test(pwd)) missing.push("1 uppercase letter");
+    if (!/\d/.test(pwd)) missing.push("1 number");
+    if (!/[!@#$%^&*]/.test(pwd)) missing.push("1 symbol (!@#$%^&*)");
+
+    if (missing.length === 0) return null;
+    return `Needs: ${missing.join(", ")}.`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     redirectIfAuthenticated();
 
@@ -71,6 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             passwordInput.classList.add("invalid");
             valid = false;
+        } else {
+            const missingMsg = getMissingPasswordRequirements(password);
+            if (missingMsg) {
+                passwordError.textContent = missingMsg;
+                passwordInput.classList.add("invalid");
+                valid = false;
+            }
         }
 
         if (

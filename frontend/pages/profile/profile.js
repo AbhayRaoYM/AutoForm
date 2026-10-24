@@ -3,41 +3,9 @@
 document.addEventListener("DOMContentLoaded", () => {
     requireAuthentication();
 
-    // Avatar and user menu
+    // Avatar and user menu handled globally by navigation.js
     const avatarButton = document.getElementById("avatarButton");
-    const userMenu = document.getElementById("userMenu");
     const logoutButton = document.getElementById("logoutButton");
-
-    if (avatarButton && userMenu) {
-        avatarButton.setAttribute("aria-label", "Account menu");
-        avatarButton.setAttribute("aria-haspopup", "true");
-        avatarButton.setAttribute("aria-expanded", "false");
-
-        avatarButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-
-            const isOpening = userMenu.hidden;
-            userMenu.hidden = !isOpening;
-            avatarButton.setAttribute("aria-expanded", String(isOpening));
-        });
-
-        document.addEventListener("click", (event) => {
-            if (
-                !userMenu.contains(event.target) &&
-                !avatarButton.contains(event.target)
-            ) {
-                userMenu.hidden = true;
-                avatarButton.setAttribute("aria-expanded", "false");
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                userMenu.hidden = true;
-                avatarButton.setAttribute("aria-expanded", "false");
-            }
-        });
-    }
 
     if (logoutButton) {
         logoutButton.addEventListener("click", () => {
@@ -52,35 +20,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const emptyState = document.getElementById("emptyState");
     const dangerCard = document.getElementById("dangerCard");
     const pageMessage = document.getElementById("pageMessage");
+    const securityShortcutCard = document.getElementById("securityShortcutCard");
 
     const saveButton = document.getElementById("saveButton");
     const saveButtonText = document.getElementById("saveButtonText");
     const saveSpinner = document.getElementById("saveSpinner");
     const cancelButton = document.getElementById("cancelButton");
     const saveStatus = document.getElementById("saveStatus");
-    const deleteProfileButton =
-        document.getElementById("deleteProfileButton");
+    const deleteProfileButton = document.getElementById("deleteProfileButton");
 
     const deleteModal = document.getElementById("deleteModal");
-    const deleteModalTitle =
-        document.getElementById("deleteModalTitle");
-    const deleteModalMessage =
-        document.getElementById("deleteModalMessage");
-    const modalCancelButton =
-        document.getElementById("modalCancelButton");
-    const modalConfirmButton =
-        document.getElementById("modalConfirmButton");
+    const deleteModalTitle = document.getElementById("deleteModalTitle");
+    const deleteModalMessage = document.getElementById("deleteModalMessage");
+    const modalCancelButton = document.getElementById("modalCancelButton");
+    const modalConfirmButton = document.getElementById("modalConfirmButton");
 
     let currentProfile = null;
     let deleteTarget = null;
+    const unmaskedFields = new Set();
 
-    /*
-     * These are the user-facing fields supported by the current
-     * patient_profiles schema/repository.
-     *
-     * Internal values such as _id, user_id, *_token, dek_id and
-     * storage keys are intentionally excluded from the UI.
-     */
     const FIELD_DEFINITIONS = [
         {
             section: "Personal information",
@@ -126,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             section: "Contact",
             eyebrow: "CONTACT",
             fields: [
-                { key: "phone", label: "Phone number", type: "text" },
+                { key: "phone", label: "Phone number", type: "text", sensitive: true },
                 { key: "email", label: "Email ID", type: "email" },
             ],
         },
@@ -135,11 +93,11 @@ document.addEventListener("DOMContentLoaded", () => {
             eyebrow: "IDENTIFIERS",
             sensitive: true,
             fields: [
-                { key: "aadhaar_number", label: "Aadhaar number", type: "text" },
-                { key: "pan_number", label: "PAN number", type: "text" },
-                { key: "voter_id", label: "Voter ID / EPIC number", type: "text" },
-                { key: "passport_number", label: "Passport number", type: "text" },
-                { key: "driving_licence_number", label: "Driving licence number", type: "text" },
+                { key: "aadhaar_number", label: "Aadhaar number", type: "text", sensitive: true },
+                { key: "pan_number", label: "PAN number", type: "text", sensitive: true },
+                { key: "voter_id", label: "Voter ID / EPIC number", type: "text", sensitive: true },
+                { key: "passport_number", label: "Passport number", type: "text", sensitive: true },
+                { key: "driving_licence_number", label: "Driving licence number", type: "text", sensitive: true },
                 { key: "birth_registration_number", label: "Birth registration number", type: "text" },
             ],
         },
@@ -148,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             eyebrow: "INSURANCE",
             sensitive: true,
             fields: [
-                { key: "health_insurance", label: "Health insurance member / policy ID", type: "text" },
+                { key: "health_insurance", label: "Health insurance member / policy ID", type: "text", sensitive: true },
                 { key: "insurance_details", label: "Insurance details", type: "textarea", wide: true },
             ],
         },
@@ -162,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ...field,
                 section: section.section,
                 eyebrow: section.eyebrow,
-                sensitive: Boolean(section.sensitive),
+                sensitive: Boolean(field.sensitive || section.sensitive),
             });
         });
     });
@@ -198,27 +156,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return currentProfile?.[key] ?? "";
     }
 
-    // added avatar character
     function updateAvatar(name) {
-    const initial = String(name || "").trim().charAt(0).toUpperCase() || "U";
-
-    if (avatarButton) {
-        avatarButton.textContent = initial;
+        const initial = String(name || "").trim().charAt(0).toUpperCase() || "U";
+        if (avatarButton) {
+            avatarButton.textContent = initial;
+        }
     }
-}
-
-
 
     function showViewMode() {
         profileEditor.hidden = true;
         profileView.hidden = false;
         dangerCard.hidden = false;
+        if (securityShortcutCard) securityShortcutCard.hidden = false;
         renderProfile();
     }
 
     function renderProfile() {
         profileView.innerHTML = "";
-
         let visibleSectionCount = 0;
 
         FIELD_DEFINITIONS.forEach((section) => {
@@ -249,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (section.sensitive) {
                 const badge = document.createElement("span");
                 badge.className = "sensitive-label";
-                badge.textContent = "Encrypted at rest";
+                badge.textContent = "🛡️ Encrypted at rest";
                 heading.appendChild(badge);
             }
 
@@ -260,8 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             visibleFields.forEach((field) => {
                 const item = document.createElement("div");
-                item.className =
-                    "detail-item" + (field.wide ? " wide" : "");
+                item.className = "detail-item" + (field.wide ? " wide" : "");
 
                 const label = document.createElement("div");
                 label.className = "detail-label";
@@ -273,10 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 label.textContent = field.label;
 
-                if (field.sensitive) {
+                const isSensitive = field.sensitive || section.sensitive;
+                if (isSensitive) {
                     const badge = document.createElement("span");
                     badge.className = "sensitive-label";
-                    badge.textContent = "Protected";
+                    badge.textContent = "Masked";
                     label.appendChild(badge);
                 }
 
@@ -284,14 +238,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     label.appendChild(deleteButton);
                 }
 
-                const value = document.createElement("div");
-                value.className = "detail-value";
-                value.textContent = String(
-                    currentProfile[field.key] ?? ""
-                );
+                const valueContainer = document.createElement("div");
+                valueContainer.style.cssText = "display: flex; align-items: center; justify-content: space-between; gap: 8px;";
+
+                const valueEl = document.createElement("div");
+                valueEl.className = "detail-value";
+
+                const rawVal = String(currentProfile[field.key] ?? "");
+                const maskedVal = String(currentProfile[`${field.key}_masked`] || rawVal);
+
+                const isCurrentlyUnmasked = unmaskedFields.has(field.key);
+                valueEl.textContent = (isSensitive && !isCurrentlyUnmasked && maskedVal) ? maskedVal : rawVal;
+
+                valueContainer.appendChild(valueEl);
+
+                if (isSensitive && maskedVal && maskedVal !== rawVal) {
+                    const toggleBtn = document.createElement("button");
+                    toggleBtn.type = "button";
+                    toggleBtn.style.cssText = "padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 8px; font-weight: 600; color: var(--accent); cursor: pointer;";
+                    toggleBtn.textContent = isCurrentlyUnmasked ? "Hide" : "Show";
+                    toggleBtn.addEventListener("click", () => {
+                        if (unmaskedFields.has(field.key)) {
+                            unmaskedFields.delete(field.key);
+                        } else {
+                            unmaskedFields.add(field.key);
+                        }
+                        renderProfile();
+                    });
+                    valueContainer.appendChild(toggleBtn);
+                }
 
                 item.appendChild(label);
-                item.appendChild(value);
+                item.appendChild(valueContainer);
                 grid.appendChild(item);
             });
 
@@ -312,8 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="detail-grid">
                     <div class="detail-item wide">
                         <div class="detail-value">
-                            Your profile exists, but it currently contains
-                            no displayable information.
+                            Your profile exists, but it currently contains no displayable information.
                         </div>
                     </div>
                 </div>
@@ -329,11 +306,10 @@ document.addEventListener("DOMContentLoaded", () => {
             </button>
         `;
 
-        actions.querySelector("#editProfileButton")
-            .addEventListener("click", enterEditMode);
-
+        actions.querySelector("#editProfileButton").addEventListener("click", enterEditMode);
         profileView.appendChild(actions);
     }
+
 
     function createDeleteButton(fieldKey) {
         const button = document.createElement("button");
@@ -349,8 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 field: fieldKey,
                 title: `Delete ${definition?.label || formatLabel(fieldKey)}?`,
                 message:
-                    `This will permanently remove ${definition?.label || "this information"} ` +
-                    "from your identity profile.",
+                    `This will permanently remove ${definition?.label || "this information"} from your identity profile.`,
             });
         });
 
@@ -366,20 +341,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const heading = document.createElement("div");
             heading.className = "card-heading";
-
-            const headingText = document.createElement("div");
-            headingText.innerHTML = `
-                <p class="eyebrow">${escapeHtml(section.eyebrow)}</p>
-                <h2>${escapeHtml(section.section)}</h2>
+            heading.innerHTML = `
+                <div>
+                    <p class="eyebrow">${escapeHtml(section.eyebrow)}</p>
+                    <h2>${escapeHtml(section.section)}</h2>
+                </div>
             `;
-            heading.appendChild(headingText);
-
-            if (section.sensitive) {
-                const badge = document.createElement("span");
-                badge.className = "sensitive-label";
-                badge.textContent = "Encrypted at rest";
-                heading.appendChild(badge);
-            }
 
             card.appendChild(heading);
 
@@ -388,23 +355,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             section.fields.forEach((field) => {
                 const wrapper = document.createElement("div");
-                wrapper.className =
-                    "field" + (field.wide ? " field-wide" : "");
+                wrapper.className = "field" + (field.wide ? " field-wide" : "");
 
                 const label = document.createElement("label");
                 label.htmlFor = `profile-${field.key}`;
                 label.textContent = field.label;
 
+                if (field.required) {
+                    const required = document.createElement("span");
+                    required.textContent = " *";
+                    label.appendChild(required);
+                }
+
                 wrapper.appendChild(label);
 
                 let control;
-
                 if (field.type === "textarea") {
                     control = document.createElement("textarea");
                     control.rows = 3;
                 } else if (field.type === "select") {
                     control = document.createElement("select");
-
                     field.options.forEach(([value, text]) => {
                         const option = document.createElement("option");
                         option.value = value;
@@ -430,17 +400,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 wrapper.appendChild(control);
 
-                if (field.key === "name") {
-                    const help = document.createElement("div");
-                    help.className = "field-help";
-                    help.textContent = "Full name is required by the profile schema.";
-                    wrapper.appendChild(help);
-                } else {
-                    const help = document.createElement("div");
-                    help.className = "field-help";
-                    help.textContent = "Leave blank to remove this value.";
-                    wrapper.appendChild(help);
-                }
+                const help = document.createElement("div");
+                help.className = "field-help";
+                help.textContent = field.key === "name" ? "Full name is required by the profile schema." : "Leave blank to remove this value.";
+                wrapper.appendChild(help);
 
                 grid.appendChild(wrapper);
             });
@@ -457,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
         profileView.hidden = true;
         profileEditor.hidden = false;
         dangerCard.hidden = true;
+        if (securityShortcutCard) securityShortcutCard.hidden = true;
 
         window.scrollTo({
             top: profileEditor.offsetTop - 25,
@@ -469,18 +433,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         FIELD_DEFINITIONS.forEach((section) => {
             section.fields.forEach((field) => {
-                const control = document.getElementById(
-                    `profile-${field.key}`
-                );
-
-                if (!control) {
-                    return;
-                }
+                const control = document.getElementById(`profile-${field.key}`);
+                if (!control) return;
 
                 const newValue = control.value.trim();
-                const oldValue = String(
-                    currentProfile?.[field.key] ?? ""
-                ).trim();
+                const oldValue = String(currentProfile?.[field.key] ?? "").trim();
 
                 if (newValue !== oldValue) {
                     data[field.key] = newValue;
@@ -494,8 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function setSaving(saving) {
         saveButton.disabled = saving;
         cancelButton.disabled = saving;
-        saveButtonText.textContent =
-            saving ? "Saving..." : "Save changes";
+        saveButtonText.textContent = saving ? "Saving..." : "Save changes";
         saveSpinner.hidden = !saving;
     }
 
@@ -507,6 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
         profileEditor.hidden = true;
         dangerCard.hidden = true;
         emptyState.hidden = true;
+        if (securityShortcutCard) securityShortcutCard.hidden = true;
 
         try {
             const profile = await apiRequest("/api/profile/", {
@@ -514,14 +471,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             currentProfile = { ...profile };
-
             updateAvatar(currentProfile.name);
 
             loadingState.hidden = true;
             showViewMode();
         } catch (error) {
             loadingState.hidden = true;
-
             const message = error?.message || "";
 
             if (message.toLowerCase().includes("profile not found")) {
@@ -536,11 +491,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     profileForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-
         clearStatus();
 
         const changedFields = collectChangedFields();
-
         if (Object.keys(changedFields).length === 0) {
             saveStatus.textContent = "No changes to save.";
             return;
@@ -564,9 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             currentProfile = { ...updated };
-
             saveStatus.textContent = "Changes saved successfully.";
-
             showViewMode();
 
             window.scrollTo({
@@ -574,9 +525,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 behavior: "smooth",
             });
         } catch (error) {
-            setPageError(
-                error?.message || "Unable to save your profile."
-            );
+            setPageError(error?.message || "Unable to save your profile.");
         } finally {
             setSaving(false);
         }
@@ -589,13 +538,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openDeleteModal(target) {
         deleteTarget = target;
-
         deleteModalTitle.textContent = target.title;
         deleteModalMessage.textContent = target.message;
-
         modalConfirmButton.textContent = "Delete";
         modalConfirmButton.disabled = false;
-
         deleteModal.hidden = false;
         document.body.classList.add("modal-open");
     }
@@ -615,65 +561,47 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     modalConfirmButton.addEventListener("click", async () => {
-        if (!deleteTarget) {
-            return;
-        }
+        if (!deleteTarget) return;
 
         modalConfirmButton.disabled = true;
         modalConfirmButton.textContent = "Deleting...";
 
         try {
             let response;
-
             if (deleteTarget.type === "field") {
                 response = await apiRequest(
                     `/api/profile/${encodeURIComponent(deleteTarget.field)}`,
-                    {
-                        method: "DELETE",
-                    }
+                    { method: "DELETE" }
                 );
-
                 currentProfile = { ...response };
-
                 closeDeleteModal();
                 showViewMode();
                 setPageError("");
-                saveStatus.textContent = "Information deleted successfully.";
-            } else {
-                await apiRequest("/api/profile/", {
-                    method: "DELETE",
-                });
-
-                closeDeleteModal();
-
+            } else if (deleteTarget.type === "profile") {
+                await apiRequest("/api/profile/", { method: "DELETE" });
                 currentProfile = null;
-                profileView.hidden = true;
-                profileEditor.hidden = true;
+                closeDeleteModal();
                 dangerCard.hidden = true;
+                profileView.hidden = true;
+                if (securityShortcutCard) securityShortcutCard.hidden = true;
                 emptyState.hidden = false;
-
                 setPageError("");
             }
         } catch (error) {
             closeDeleteModal();
-            setPageError(
-                error?.message || "Unable to delete the selected information."
-            );
-        } finally {
-            modalConfirmButton.disabled = false;
-            modalConfirmButton.textContent = "Delete";
+            setPageError(error?.message || "Unable to complete deletion.");
         }
     });
 
-    deleteProfileButton.addEventListener("click", () => {
-        openDeleteModal({
-            type: "profile",
-            title: "Delete your entire profile?",
-            message:
-                "Every saved identity value in this profile will be permanently " +
-                "removed. This action cannot be undone.",
+    if (deleteProfileButton) {
+        deleteProfileButton.addEventListener("click", () => {
+            openDeleteModal({
+                type: "profile",
+                title: "Delete entire profile?",
+                message: "This will permanently remove your entire encrypted profile and all associated field tokens. This cannot be undone.",
+            });
         });
-    });
+    }
 
     loadProfile();
 });

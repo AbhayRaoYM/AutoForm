@@ -21,8 +21,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
     <link rel="shortcut icon" href="/favicons/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
-
-    
 </head>
 
 <body>
@@ -99,6 +97,14 @@
                 aria-live="polite"
             ></div>
 
+            <div
+                class="attempt-warning"
+                id="attemptWarning"
+                role="alert"
+                aria-live="polite"
+                hidden
+            ></div>
+
             <button
                 class="primary-button"
                 id="loginButton"
@@ -119,7 +125,7 @@
         </a>
 
         <p class="privacy-note">
-            Your information is protected and used only for
+            Your information is protected with AES-256 and used only for
             consent-based autofill.
         </p>
 
@@ -127,8 +133,32 @@
 
 </main>
 
+<!-- Account Lockout Modal Dialog -->
+<div id="lockoutModal" class="lockout-modal" aria-hidden="true" role="dialog" aria-labelledby="lockoutTitle">
+    <div class="lockout-backdrop" id="lockoutBackdrop"></div>
+    <div class="lockout-dialog">
+        <div class="lockout-icon" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+        <h2 id="lockoutTitle">Account Temporarily Locked</h2>
+        <p class="lockout-desc">
+            Too many consecutive failed login attempts were detected. To protect your encrypted identity vault, this account has been temporarily locked.
+        </p>
+        <div class="lockout-timer-box">
+            <span class="timer-label">Please try again in</span>
+            <span id="lockoutCountdown" class="timer-value">15:00</span>
+        </div>
+        <button id="lockoutDismissBtn" class="primary-button lockout-btn" type="button">
+            I understand
+        </button>
+    </div>
+</div>
+
 <script src="../../js/config.js"></script>
-    <script src="../../js/api.js"></script>
+<script src="../../js/api.js"></script>
 <script src="../../js/auth.js"></script>
 <script src="login.js"></script>
 

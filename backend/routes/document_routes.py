@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from pydantic import BaseModel
+from bson import ObjectId
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from backend.auth import get_authenticated_user_id
-from backend.services.document_service import persist_extraction
 from backend.dependencies import get_extraction_service
 from backend.document_extraction.gemini_service import GeminiExtractionService
 from backend.document_extraction.schemas import ExtractionResponse
-from backend.settings import get_settings
-
+from backend.security.audit_logger import log_security_event
+from backend.services.document_service import persist_extraction
+from backend.utils.secure_files import temporary_upload_file
 
 router = APIRouter(
     prefix="/api/documents",
@@ -38,13 +38,14 @@ class ConsentRequest(BaseModel):
     response_model=ExtractionResponse,
 )
 async def extract_document(
+    request: Request,
     file: UploadFile = File(...),
     service: GeminiExtractionService = Depends(
         get_extraction_service
     ),
-    user_id=Depends(get_authenticated_user_id),
+    user_id: ObjectId = Depends(get_authenticated_user_id),
 ) -> ExtractionResponse:
-
+    client_ip = request.client.host if request.client else None
     filename = file.filename or "document"
     suffix = Path(filename).suffix.lower()
 
@@ -58,98 +59,54 @@ async def extract_document(
             ),
         )
 
-    temp_dir = get_settings().upload_dir
-    temp_dir.mkdir(parents=True, exist_ok=True)
-
-    temp_path = temp_dir / f"{uuid4().hex}{suffix}"
-
     try:
         contents = await file.read()
-
         if not contents:
             raise HTTPException(
                 status_code=400,
                 detail="Uploaded file is empty",
             )
 
-        temp_path.write_bytes(contents)
+        with temporary_upload_file(contents, suffix=suffix) as temp_path:
+            result = service.extract_document(
+                temp_path,
+                ALLOWED_EXTENSIONS[suffix],
+            )
 
-        result = service.extract_document(
-            temp_path,
-            ALLOWED_EXTENSIONS[suffix],
+        log_security_event(
+            action="DOCUMENT_EXTRACT",
+            user_id=user_id,
+            details={"filename_ext": suffix, "doc_type": result.document_type},
+            ip_address=client_ip,
+            status="SUCCESS",
         )
-        print("[EXTRACT] Gemini extraction completed")
-        print("[EXTRACT] Result type:", type(result))
-        print("[EXTRACT] Result:", result)
 
         response_data = result.model_dump(mode="json")
-
-        print("[EXTRACT] Response data prepared:")
-        print(response_data)
-
-        return JSONResponse(
-            content=response_data
-        )
-
-        # IMPORTANT:
-        # Extraction is returned to the frontend only.
-        # Nothing is persisted before explicit user consent.
-        # return result
+        return JSONResponse(content=response_data)
 
     except HTTPException:
         raise
-
     except Exception as exc:
-        import traceback
-
-        traceback.print_exc()
-
+        log_security_event(
+            action="DOCUMENT_EXTRACT_FAILED",
+            user_id=user_id,
+            details={"error": str(exc)},
+            ip_address=client_ip,
+            status="FAILURE",
+        )
         raise HTTPException(
             status_code=502,
             detail=str(exc),
         ) from exc
 
-    finally:
-        if temp_path.exists():
-            temp_path.unlink(missing_ok=True)
-
 
 def convert_extraction_for_persistence(
     extraction: dict,
 ) -> dict:
-    """
-    Convert the Gemini ExtractionResponse structure:
-
-        {
-            "status": "success",
-            "document_type": "aadhaar",
-            "overall_confidence": 0.92,
-            "extracted_fields": {
-                "full_name": {
-                    "value": "...",
-                    "confidence": 0.98
-                }
-            }
-        }
-
-    into the structure expected by persist_extraction():
-
-        {
-            "document_type": "aadhaar",
-            "confidence_score": 0.92,
-            "full_name": {
-                "value": "..."
-            }
-        }
-
-    This conversion happens ONLY after consent.
-    """
-
     if not isinstance(extraction, dict):
         raise ValueError("Extraction must be an object.")
 
     document_type = extraction.get("document_type")
-
     if not document_type:
         raise ValueError("Missing document_type in extraction.")
 
@@ -201,7 +158,6 @@ def convert_extraction_for_persistence(
     }
 
     for field_name, field_data in extracted_fields.items():
-
         if isinstance(field_data, dict):
             value = field_data.get("value")
         else:
@@ -216,12 +172,11 @@ def convert_extraction_for_persistence(
 
 @router.post("/consent")
 async def save_after_consent(
+    request: Request,
     payload: ConsentRequest,
-    user_id=Depends(get_authenticated_user_id),
+    user_id: ObjectId = Depends(get_authenticated_user_id),
 ):
-    """
-    Persist extracted information ONLY after explicit consent.
-    """
+    client_ip = request.client.host if request.client else None
 
     if payload.consent_given is not True:
         raise HTTPException(
@@ -240,21 +195,22 @@ async def save_after_consent(
             payload.extraction
         )
 
-        print(
-            "[CONSENT] Persisting approved extraction:",
-            persistence_data,
-        )
-
         persist_extraction(
             user_id,
             persistence_data,
         )
 
+        log_security_event(
+            action="DOCUMENT_CONSENT_PERSISTED",
+            user_id=user_id,
+            details={"doc_type": persistence_data.get("document_type")},
+            ip_address=client_ip,
+            status="SUCCESS",
+        )
+
         return {
             "success": True,
-            "message": (
-                "Extracted information saved successfully."
-            ),
+            "message": "Extracted information saved successfully into encrypted profile.",
         }
 
     except ValueError as exc:
@@ -262,13 +218,15 @@ async def save_after_consent(
             status_code=400,
             detail=str(exc),
         ) from exc
-
-    except Exception:
-        import traceback
-
-        traceback.print_exc()
-
+    except Exception as exc:
+        log_security_event(
+            action="DOCUMENT_CONSENT_FAILED",
+            user_id=user_id,
+            details={"error": str(exc)},
+            ip_address=client_ip,
+            status="FAILURE",
+        )
         raise HTTPException(
             status_code=500,
             detail="Unable to save extracted information.",
-        )
+        ) from exc

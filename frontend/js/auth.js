@@ -8,6 +8,19 @@ function getAccessToken() {
     return localStorage.getItem("access_token");
 }
 
+function saveRefreshToken(token) {
+    localStorage.setItem("refresh_token", token);
+}
+
+function getRefreshToken() {
+    return localStorage.getItem("refresh_token");
+}
+
+function clearAuthTokens() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+}
+
 function isTokenExpired(token) {
     try {
         const payload = token.split(".")[1];
@@ -21,11 +34,34 @@ function isTokenExpired(token) {
     }
 }
 
+function getUserRole() {
+    const token = getAccessToken() || getRefreshToken();
+    if (!token) return null;
+    try {
+        const payload = token.split(".")[1];
+        const decodedPayload = JSON.parse(
+            atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+        );
+        return decodedPayload.role || "patient";
+    } catch {
+        return null;
+    }
+}
+
+function isAdmin() {
+    return getUserRole() === "admin";
+}
+
 function isAuthenticated() {
     const token = getAccessToken();
 
     if (!token || isTokenExpired(token)) {
-        localStorage.removeItem("access_token");
+        // If access token is expired, we might still have a refresh token
+        const refreshToken = getRefreshToken();
+        if (refreshToken && !isTokenExpired(refreshToken)) {
+            return true;
+        }
+        clearAuthTokens();
         return false;
     }
 
@@ -44,9 +80,18 @@ document.querySelectorAll(".brand[data-authenticated-href]").forEach((brand) => 
     brand.addEventListener("click", updateDestination);
 });
 
-function logout() {
-    localStorage.removeItem("access_token");
-    window.location.href = "../login/login.html";
+async function logout() {
+    const token = getAccessToken();
+    try {
+        if (token && typeof apiRequest === "function") {
+            await apiRequest("/api/auth/logout", { method: "POST" });
+        }
+    } catch (err) {
+        console.warn("Server logout notification failed:", err);
+    } finally {
+        clearAuthTokens();
+        window.location.href = "../login/login.html";
+    }
 }
 
 /**
@@ -55,6 +100,21 @@ function logout() {
 function requireAuthentication() {
     if (!isAuthenticated()) {
         window.location.replace("../login/login.html");
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Use this at the beginning of admin-only pages.
+ */
+function requireAdmin() {
+    if (!isAuthenticated()) {
+        window.location.replace("../login/login.html");
+        return false;
+    }
+    if (!isAdmin()) {
+        window.location.replace("../dashboard/dashboard.html");
         return false;
     }
     return true;
