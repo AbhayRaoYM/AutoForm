@@ -1,6 +1,40 @@
 if (typeof requireAuthentication === "function") {
   requireAuthentication();
 }
+const avatarButton = document.getElementById("avatarButton");
+
+if (avatarButton) {
+    async function loadAvatarInitial() {
+        avatarButton.textContent = "U";
+
+        try {
+            const response = await apiRequest("/api/profile/", {
+                method: "GET"
+            });
+
+            const profile =
+                response?.profile ||
+                response?.data?.profile ||
+                response?.data ||
+                response;
+
+            const name = String(
+                profile?.name ||
+                profile?.full_name ||
+                profile?.fullName ||
+                ""
+            ).trim();
+
+            if (name) {
+                avatarButton.textContent = name.charAt(0).toUpperCase();
+            }
+        } catch (error) {
+            console.error("[Avatar] Failed to load profile:", error);
+        }
+    }
+
+    loadAvatarInitial();
+}
 
 const previewButton = document.getElementById("previewButton");
 const reviewButton = document.getElementById("reviewButton");
@@ -110,6 +144,10 @@ function buildDownloadName(originalName) {
 const reviewModal = document.getElementById("reviewModal");
 const reviewGroups = document.getElementById("reviewGroups");
 const manualReviewSection = document.getElementById("manualReviewSection");
+const reviewCardHeading = document.getElementById("reviewCardHeading");
+const reviewCardMessage = document.getElementById("reviewCardMessage");
+const reviewStatusIcon = document.getElementById("reviewStatusIcon");
+const reviewCount = document.getElementById("reviewCount");
 const openReviewModalButton = document.getElementById("openReviewModalButton");
 const closeReviewModalButton = document.getElementById("closeReviewModalButton");
 const doneReviewButton = document.getElementById("doneReviewButton");
@@ -128,80 +166,113 @@ function closeReviewModal() {
   openReviewModalButton?.focus();
 }
 
+
 function renderReviewItems(items) {
-  const count = document.getElementById("reviewCount");
-  if (!count || !reviewGroups || !manualReviewSection) return;
+    if (!reviewGroups) return;
 
-  reviewGroups.replaceChildren();
-  count.textContent = String(items.length);
-  manualReviewSection.hidden = items.length === 0;
+    reviewGroups.replaceChildren();
 
-  if (items.length === 0) {
-    closeReviewModal();
-    return;
-  }
+   const count = items.length;
 
-  // Group fields by issue so the same explanation appears once per group.
-  const groupDefinitions = {
-    type_mismatch: {
-      title: "Profile information exists, but the field type is incompatible",
-      description: "These fields were left blank to avoid placing data in an unsuitable field."
-    },
-    ambiguous: {
-      title: "Ambiguous field labels",
-      description: "These labels could refer to different identity fields, so the system did not guess."
-    },
-    unmatched: {
-      title: "Possible matches need verification",
-      description: "The system found profile information that may correspond to these fields, but the match was not confident enough."
+    manualReviewSection.hidden = false;
+
+    // Keep the old count badge hidden at all times.
+    if (reviewCount) {
+        reviewCount.textContent = String(count);
+        reviewCount.hidden = true;
     }
-  };
 
-  const groups = new Map();
-  items.forEach((item) => {
-    const kind = groupDefinitions[item.kind] ? item.kind : "unmatched";
-    if (!groups.has(kind)) groups.set(kind, []);
-    groups.get(kind).push(item);
-  });
+    // Use only one visible badge.
+    if (count === 0) {
+    manualReviewSection.classList.remove("has-review-issues");
 
-  groups.forEach((groupItems, kind) => {
-    const definition = groupDefinitions[kind];
-    const section = document.createElement("section");
-    section.className = `review-group review-group-${kind}`;
+    reviewCardHeading.textContent = "Review before downloading";
+    reviewCardMessage.textContent =
+        "Please review your completed form and verify that all information is correct before downloading.";
 
-    const heading = document.createElement("h3");
-    heading.textContent = `${definition.title} (${groupItems.length})`;
-    section.appendChild(heading);
+    reviewStatusIcon.textContent = "!";
 
-    const list = document.createElement("ul");
-    groupItems.forEach((item) => {
-      const listItem = document.createElement("li");
-      listItem.appendChild(document.createTextNode(item.label || "Unlabelled field"));
+    return;
+} else {
+        manualReviewSection.classList.add("has-review-issues");
+        reviewCardHeading.textContent = "Review required";
+        reviewCardMessage.textContent =
+            "Some fields may need your attention. Review them before downloading.";
+        reviewStatusIcon.textContent = String(count);
+    }
 
-      if (item.page) {
-        const page = document.createElement("span");
-        page.className = "review-field-page";
-        page.textContent = ` — Page ${item.page}`;
-        listItem.appendChild(page);
-      }
+    manualReviewSection.classList.add("has-review-issues");
 
-      list.appendChild(listItem);
+    reviewCardHeading.textContent = "Review required";
+    reviewCardMessage.textContent =
+        "Some fields may need your attention. Review them before downloading.";
+    reviewStatusIcon.textContent = String(count);
+
+    const groupDefinitions = {
+        type_mismatch: {
+            title: "Profile information exists, but the field type is incompatible",
+            description: "These fields were left blank to avoid placing data in an unsuitable field."
+        },
+        ambiguous: {
+            title: "Ambiguous field labels",
+            description: "These labels could refer to different identity fields, so the system did not guess."
+        },
+        unmatched: {
+            title: "Possible matches need verification",
+            description: "The system found profile information that may correspond to these fields, but the match was not confident enough."
+        }
+    };
+
+    const groups = new Map();
+
+    items.forEach((item) => {
+        const kind = groupDefinitions[item.kind] ? item.kind : "unmatched";
+
+        if (!groups.has(kind)) groups.set(kind, []);
+        groups.get(kind).push(item);
     });
-    section.appendChild(list);
 
-    const explanation = document.createElement("p");
-    explanation.className = "review-empty";
-    explanation.textContent = definition.description;
-    explanation.style.padding = "0 13px 12px";
-    explanation.style.margin = "0";
-    section.appendChild(explanation);
+    groups.forEach((groupItems, kind) => {
+        const definition = groupDefinitions[kind];
+        const section = document.createElement("section");
+        section.className = `review-group review-group-${kind}`;
 
-    reviewGroups.appendChild(section);
-  });
+        const heading = document.createElement("h3");
+        heading.textContent = `${definition.title} (${groupItems.length})`;
+        section.appendChild(heading);
 
-  // Show the popup automatically only when there are meaningful review items.
-  openReviewModal();
+        const list = document.createElement("ul");
+
+        groupItems.forEach((item) => {
+            const listItem = document.createElement("li");
+            listItem.appendChild(
+                document.createTextNode(item.label || "Unlabelled field")
+            );
+
+            if (item.page) {
+                const page = document.createElement("span");
+                page.className = "review-field-page";
+                page.textContent = ` — Page ${item.page}`;
+                listItem.appendChild(page);
+            }
+
+            list.appendChild(listItem);
+        });
+
+        section.appendChild(list);
+
+        const explanation = document.createElement("p");
+        explanation.className = "review-empty";
+        explanation.textContent = definition.description;
+        explanation.style.padding = "0 13px 12px";
+        explanation.style.margin = "0";
+        section.appendChild(explanation);
+
+        reviewGroups.appendChild(section);
+    });
+    openReviewModal();
 }
+
 
 function displayResult(record) {
   if (!record || !(record.blob instanceof Blob)) {
@@ -213,8 +284,16 @@ function displayResult(record) {
     URL.revokeObjectURL(resultUrl);
   }
 
+  // resultRecord = record;
+  // renderReviewItems(Array.isArray(record.reviewItems) ? record.reviewItems : []);
   resultRecord = record;
-  renderReviewItems(Array.isArray(record.reviewItems) ? record.reviewItems : []);
+
+// console.log("Result record:", record);
+// console.log("Review items:", record.reviewItems);
+
+renderReviewItems(
+    Array.isArray(record.reviewItems) ? record.reviewItems : []
+);
   const isPdf = isPdfRecord(record);
   // Some producers store a PDF Blob without its MIME type. Normalize it for the browser.
   const displayBlob = isPdf && record.blob.type !== "application/pdf"
@@ -296,15 +375,25 @@ previewButton.addEventListener("click", () => {
   window.open(resultUrl, "_blank", "noopener,noreferrer");
 });
 
+// reviewButton.addEventListener("click", () => {
+//   if (resultRecord && Array.isArray(resultRecord.reviewItems) && resultRecord.reviewItems.length > 0) {
+//     openReviewModal();
+//   } else {
+//     showToast("Please review the completed form carefully before submitting it.");
+//   }
+// });
+
 reviewButton.addEventListener("click", () => {
-  if (resultRecord && Array.isArray(resultRecord.reviewItems) && resultRecord.reviewItems.length > 0) {
-    openReviewModal();
-  } else {
-    showToast("Please review the completed form carefully before submitting it.");
-  }
+    if (resultRecord?.reviewItems?.length > 0) {
+        openReviewModal();
+    } else {
+        showToast(
+            "No specific fields require review. Please verify the completed form in the preview."
+        );
+    }
 });
 
-openReviewModalButton?.addEventListener("click", openReviewModal);
+// openReviewModalButton?.addEventListener("click", openReviewModal);
 closeReviewModalButton?.addEventListener("click", closeReviewModal);
 doneReviewButton?.addEventListener("click", closeReviewModal);
 

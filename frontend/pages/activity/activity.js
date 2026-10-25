@@ -2,6 +2,41 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (typeof requireAuthentication === "function" && !requireAuthentication()) return;
+    // Load the logged-in user's initial into the avatar.
+const avatarButton = document.getElementById("avatarButton");
+
+if (avatarButton) {
+    async function loadAvatarInitial() {
+        avatarButton.textContent = "U";
+
+        try {
+            const response = await apiRequest("/api/profile/", {
+                method: "GET"
+            });
+
+            const profile =
+                response?.profile ||
+                response?.data?.profile ||
+                response?.data ||
+                response;
+
+            const name = String(
+                profile?.name ||
+                profile?.full_name ||
+                profile?.fullName ||
+                ""
+            ).trim();
+
+            if (name) {
+                avatarButton.textContent = name.charAt(0).toUpperCase();
+            }
+        } catch (error) {
+            console.error("[Avatar] Failed to load profile:", error);
+        }
+    }
+
+    loadAvatarInitial();
+}
 
     // Avatar Menu dropdown & logout handled globally by navigation.js
     const logoutButton = document.getElementById("logoutButton");

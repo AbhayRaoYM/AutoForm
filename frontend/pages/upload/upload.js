@@ -525,14 +525,48 @@ document.addEventListener("DOMContentLoaded", () => {
         previewFallback.hidden = false;
     }
 
+    // function renderReviewFields() {
+    //     reviewFields.innerHTML = "";
+    //     const fields = extractedData?.extracted_fields || {};
+    //     Object.entries(fields).forEach(([key, fieldData]) => {
+    //         const wrapper = document.createElement("div");
+
+
+    //         // wrapper.className = "review-field";
+    //         const flaggedFields = getConfidenceReasons().map(
+    //             item => String(item.field || "").trim().toLowerCase()
+    //         );
+
+    //         wrapper.className = flaggedFields.includes(key.toLowerCase())
+    //             ? "review-field low-confidence"
+    //             : "review-field";
+
+    //         const label = document.createElement("label");
+    //         label.htmlFor = `review-field-${key}`;
+    //         label.textContent = labelFor(key);
+    //         const input = document.createElement("input");
+    //         input.type = "text";
+    //         input.id = `review-field-${key}`;
+    //         input.dataset.fieldKey = key;
+    //         input.value = getDisplayValue(fieldData) ?? "";
+    //         input.disabled = !isEditingReview;
+    //         input.autocomplete = "off";
+    //         input.setAttribute("aria-label", labelFor(key));
+    //         wrapper.append(label, input);
+    //         reviewFields.appendChild(wrapper);
+    //     });
+    //     addReviewFieldButton.hidden = !isEditingReview;
+    //     reviewEditNote.hidden = !isEditingReview;
+    //     editDetailsButton.textContent = isEditingReview ? "Finish editing" : "Edit details manually";
+    // }
+    
     function renderReviewFields() {
         reviewFields.innerHTML = "";
         const fields = extractedData?.extracted_fields || {};
+
         Object.entries(fields).forEach(([key, fieldData]) => {
             const wrapper = document.createElement("div");
 
-
-            // wrapper.className = "review-field";
             const flaggedFields = getConfidenceReasons().map(
                 item => String(item.field || "").trim().toLowerCase()
             );
@@ -541,9 +575,55 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? "review-field low-confidence"
                 : "review-field";
 
+            // Header containing the field label and remove button.
+            const header = document.createElement("div");
+            header.className = "review-field-header";
+
             const label = document.createElement("label");
             label.htmlFor = `review-field-${key}`;
             label.textContent = labelFor(key);
+
+            // Remove button: visible only while manually editing.
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-review-field";
+            removeButton.textContent = "\u00d7";
+            removeButton.title = `Remove ${labelFor(key)}`;
+            removeButton.setAttribute(
+                "aria-label",
+                `Remove ${labelFor(key)}`
+            );
+
+            removeButton.addEventListener("click", () => {
+                const confirmed = window.confirm(
+                    `Remove "${labelFor(key)}" from the extracted details?`
+                );
+
+                if (!confirmed) return;
+
+                // Remove this field from the in-memory extraction data.
+                delete extractedData.extracted_fields[key];
+
+                // Remove confidence warnings associated with this field.
+                if (Array.isArray(extractedData.confidence_reason)) {
+                    extractedData.confidence_reason =
+                        extractedData.confidence_reason.filter(
+                            item =>
+                                String(item.field || "").trim().toLowerCase() !==
+                                key.toLowerCase()
+                        );
+                }
+
+                renderReviewFields();
+                renderQuality();
+            });
+
+            header.appendChild(label);
+
+            if (isEditingReview) {
+                header.appendChild(removeButton);
+            }
+
             const input = document.createElement("input");
             input.type = "text";
             input.id = `review-field-${key}`;
@@ -552,13 +632,19 @@ document.addEventListener("DOMContentLoaded", () => {
             input.disabled = !isEditingReview;
             input.autocomplete = "off";
             input.setAttribute("aria-label", labelFor(key));
-            wrapper.append(label, input);
+
+            wrapper.append(header, input);
             reviewFields.appendChild(wrapper);
         });
+
         addReviewFieldButton.hidden = !isEditingReview;
         reviewEditNote.hidden = !isEditingReview;
-        editDetailsButton.textContent = isEditingReview ? "Finish editing" : "Edit details manually";
+
+        editDetailsButton.textContent = isEditingReview
+            ? "Finish editing"
+            : "Edit details manually";
     }
+
 
     function renderReviewScreen() {
         uploadState.hidden = true;
