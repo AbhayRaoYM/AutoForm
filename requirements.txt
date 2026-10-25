@@ -22,3 +22,4 @@ cryptography>=43.0.0
 bcrypt
 PyJWT
 PyMuPDF
+slowapi>=0.1.9

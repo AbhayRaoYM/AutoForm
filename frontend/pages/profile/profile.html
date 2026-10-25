@@ -55,8 +55,8 @@
                 id="userMenu"
                 hidden
             >
-                <a href="../dashboard/dashboard.html">
-                    Dashboard
+                <a href="profile.html">
+                    Profile
                 </a>
 
                 <button id="logoutButton" type="button">
@@ -74,17 +74,17 @@
 
     <section class="heading-row">
         <div>
-            <p class="eyebrow">IDENTITY PROFILE</p>
+            <p class="eyebrow">IDENTITY VAULT</p>
             <h1>Your profile</h1>
             <p>
-                Review and manage the identity information saved from
-                your consented documents.
+                Review and manage your identity information. Sensitive government
+                identifiers are encrypted at rest with AES-256 and masked by default.
             </p>
         </div>
 
         <div class="security-badge">
-            <span>✓</span>
-            Protected profile
+            <span>🛡️</span>
+            AES-256 Encrypted Vault
         </div>
     </section>
 
@@ -102,6 +102,18 @@
     </section>
 
     <section class="profile-view" id="profileView" hidden></section>
+
+    <section class="profile-card" id="securityShortcutCard" hidden style="margin-top: 24px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <p class="eyebrow" style="margin: 0 0 4px; color: var(--accent);">AUDIT & PRIVACY</p>
+            <h2 style="margin: 0 0 6px; font-size: 17px; color: var(--navy);">Security & Access Activity</h2>
+            <p style="margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4;">Review immutable logs of account logins, identity updates, and document processing.</p>
+        </div>
+        <a href="../activity/activity.html" class="primary-button" style="text-decoration: none; padding: 10px 20px; font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🛡️ View Activity Log</span>
+            <span>→</span>
+        </a>
+    </section>
 
     <section class="profile-editor" id="profileEditor" hidden>
         <div class="editor-header">
@@ -200,10 +212,9 @@
 </footer>
 
 <script src="../../js/config.js"></script>
-    <script src="../../js/api.js"></script>
+<script src="../../js/api.js"></script>
 <script src="../../js/auth.js"></script>
 <script src="profile.js"></script>
-
 <script src="../../js/navigation.js"></script>
 </body>
 </html>

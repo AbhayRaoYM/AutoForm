@@ -13,6 +13,11 @@
     --surface: #ffffff;
     --accent: #55708f;
     --error: #9a6262;
+    --warning-bg: #fffbeb;
+    --warning-border: #fde68a;
+    --warning-text: #92400e;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
 }
 
 body {
@@ -189,6 +194,25 @@ button {
     line-height: 1.45;
 }
 
+.attempt-warning {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--warning-border);
+    border-radius: 8px;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    font-size: 10px;
+    line-height: 1.45;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attempt-warning[hidden] {
+    display: none;
+}
+
 .primary-button {
     width: 100%;
     height: 45px;
@@ -272,6 +296,107 @@ button {
     line-height: 1.5;
 }
 
+/* Modal Dialog for Account Lockout */
+.lockout-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease-in-out;
+}
+
+.lockout-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lockout-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.68);
+    backdrop-filter: blur(4px);
+}
+
+.lockout-dialog {
+    position: relative;
+    width: min(400px, calc(100vw - 32px));
+    padding: 28px 24px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+    text-align: center;
+    transform: scale(0.94);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lockout-modal.active .lockout-dialog {
+    transform: scale(1);
+}
+
+.lockout-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.lockout-dialog h2 {
+    margin: 0 0 8px;
+    color: var(--navy);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.lockout-desc {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.lockout-timer-box {
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    background: #fff5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.timer-label {
+    color: #991b1b;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.timer-value {
+    color: var(--danger);
+    font-size: 28px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+.lockout-btn {
+    height: 42px;
+    font-size: 11px;
+}
+
 @media (max-width: 480px) {
     .auth-page {
         padding: 20px 14px;
@@ -284,5 +409,9 @@ button {
 
     .heading {
         margin-top: 34px;
+    }
+
+    .lockout-dialog {
+        padding: 24px 18px;
     }
 }

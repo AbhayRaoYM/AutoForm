@@ -1,231 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoForm — Autofill Form</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="autofill.css">
-    <link rel="stylesheet" href="../../css/navigation.css">
-
-    <!-- AutoForm favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
-  <link rel="shortcut icon" href="/favicons/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoForm — Autofill Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="autofill.css">
+<link rel="stylesheet" href="../../css/navigation.css">
+<!-- AutoForm favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
+<link rel="shortcut icon" href="/favicons/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="../dashboard/dashboard.html" aria-label="MedForm dashboard">
-        <span class="brand-mark">A</span>
-        <span>AutoForm</span>
-      </a>
-
-      <nav class="nav">
-        <a href="../dashboard/dashboard.html">Dashboard</a>
-        <a href="../upload/upload.html">Documents</a>
-        <a class="active" href="autofill.html">Forms</a>
-        <a href="../profile/profile.html">Profile</a>
-      </nav>
-
-      <div class="user-area">
-        
-        <button
-                style="cursor: pointer;"
-                class="avatar"
-                id="avatarButton"
-                type="button"
-            >
-                U
-            </button>
-
-            <div
-                class="user-menu"
-                id="userMenu"
-                hidden
-            >
-                <a href="../dashboard/dashboard.html">
-                    Dashboard
-                </a>
-
-                <button id="logoutButton" type="button">
-                    Sign out
-                </button>
-            </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="page">
-    <section class="page-heading">
-      <div>
-        <p class="eyebrow">FORM AUTOFILL</p>
-        <h1>Fill a medical form</h1>
-        <p>Upload a blank form and AutoForm will use your consented profile information to fill it automatically.</p>
-      </div>
-    </section>
-
-    <section class="workflow-card">
-      <div class="steps">
-        <div class="step active" id="stepUpload">
-          <span>1</span>
-          <div>
-            <strong>Upload</strong>
-            <small>Select your form</small>
-          </div>
-        </div>
-
-        <div class="step-line"></div>
-
-        <div class="step" id="stepProcess">
-          <span>2</span>
-          <div>
-            <strong>Process</strong>
-            <small>Autofill in progress</small>
-          </div>
-        </div>
-
-        <div class="step-line"></div>
-
-        <div class="step" id="stepResult">
-          <span>3</span>
-          <div>
-            <strong>Complete</strong>
-            <small>Review your form</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="upload-view" id="uploadView">
-        <div class="section-intro">
-          <p class="eyebrow">STEP 1</p>
-          <h2>Upload your form</h2>
-          <p>Choose an image or PDF of the medical form you want to autofill.</p>
-        </div>
-
-        <div class="drop-zone" id="dropZone">
-          <input
-            type="file"
-            id="fileInput"
-            accept=".pdf,.png,.jpg,.jpeg"
-          >
-
-          <div class="upload-icon">↑</div>
-          <h3>Drop your form here</h3>
-          <p>or choose a file from your device</p>
-
-          <button class="choose-button" id="chooseButton" type="button">
-            Choose form
-          </button>
-
-          <span class="file-types">PDF, JPG, JPEG or PNG · Maximum 10 MB</span>
-        </div>
-
-        <div class="selected-file" id="selectedFile" hidden>
-          <div class="file-icon" id="fileIcon">PDF</div>
-          <div class="file-details">
-            <strong id="fileName">form.pdf</strong>
-            <span id="fileSize">2.4 MB</span>
-          </div>
-          <button class="remove-button" id="removeButton" type="button">Remove</button>
-        </div>
-
-        <div class="consent-note">
-          <span class="note-icon">✓</span>
-          <div>
-            <strong>Your profile will be used</strong>
-            <p>Only information already available in your consented identity profile will be used for autofill.</p>
-          </div>
-        </div>
-
-        <button class="start-button" id="startButton" type="button" disabled>
-          <span>Start autofill</span>
-          <span>→</span>
-        </button>
-      </div>
-
-      <div class="processing-view" id="processingView" hidden>
-        <div class="loader-wrap">
-          <div class="loader"></div>
-        </div>
-
-        <p class="eyebrow">PROCESSING DOCUMENT</p>
-        <h2>We're filling your form</h2>
-        <p class="processing-text">Please wait while AutoForm reads the form and matches it with your profile information.</p>
-
-        <div class="progress-box">
-          <div class="progress-header">
-            <span id="processingStatus">Reading document...</span>
-            <span id="progressPercent">0%</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-bar" id="progressBar"></div>
-          </div>
-        </div>
-
-        <div class="processing-list">
-          <div class="processing-item" id="process1">
-            <span class="process-check">✓</span>
-            <span>Reading document structure</span>
-          </div>
-          <div class="processing-item" id="process2">
-            <span class="process-check">✓</span>
-            <span>Detecting form fields</span>
-          </div>
-          <div class="processing-item" id="process3">
-            <span class="process-check">✓</span>
-            <span>Matching profile information</span>
-          </div>
-          <div class="processing-item" id="process4">
-            <span class="process-check">✓</span>
-            <span>Generating completed form</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="result-view" id="resultView" hidden>
-        <div class="result-icon">✓</div>
-        <p class="eyebrow">AUTOFILL COMPLETE</p>
-        <h2>Your form is ready</h2>
-        <p class="result-text">AutoForm successfully processed your document using your consented profile information.</p>
-
-        <div class="result-file">
-          <div class="file-icon">PDF</div>
-          <div>
-            <strong id="resultFileName">Completed form.pdf</strong>
-            <span>Ready for review</span>
-          </div>
-        </div>
-
-        <div class="result-actions">
-          <button class="secondary-button" id="newFormButton" type="button">Fill another form</button>
-          <button class="download-button" id="downloadButton" type="button">Download form <span>↓</span></button>
-        </div>
-
-        <div class="review-note">
-          <span>i</span>
-          <p>Please review the completed form before submitting it.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <span>AutoForm</span>
-    <span>Secure identity • Consent-based autofill</span>
-  </footer>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
- <script src="../../js/config.js"></script>
-    <script src="../../js/api.js"></script>
-  <script src="../../js/auth.js"></script>
-  <script src="autofill.js"></script>
+<header class="topbar">
+<div class="topbar-inner">
+<a class="brand" href="../dashboard/dashboard.html" aria-label="MedForm dashboard">
+<span class="brand-mark">A</span>
+<span>AutoForm</span>
+</a>
+<nav class="nav">
+<a href="../dashboard/dashboard.html">Dashboard</a>
+<a href="../upload/upload.html">Documents</a>
+<a class="active" href="autofill.html">Forms</a>
+<a href="../profile/profile.html">Profile</a>
+</nav>
+<div class="user-area">
+<button
+    style="cursor: pointer;"
+    class="avatar"
+    id="avatarButton"
+    type="button"
+>
+    U
+</button>
+<div
+    class="user-menu"
+    id="userMenu"
+    hidden
+>
+<a href="../profile/profile.html">
+    Profile
+</a>
+<button id="logoutButton" type="button">
+    Sign out
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="page">
+<section class="page-heading">
+<div>
+<p class="eyebrow">FORM AUTOFILL</p>
+<h1>Fill a form here</h1>
+<p>Upload a blank form and AutoForm will use your consented profile information to fill it automatically.</p>
+</div>
+</section>
+<section class="workflow-card">
+<div class="steps">
+<div class="step active" id="stepUpload">
+<span>1</span>
+<div>
+<strong>Upload</strong>
+<small>Select your form</small>
+</div>
+</div>
+<div class="step-line"></div>
+<div class="step" id="stepProcess">
+<span>2</span>
+<div>
+<strong>Process</strong>
+<small>Autofill in progress</small>
+</div>
+</div>
+<div class="step-line"></div>
+<div class="step" id="stepResult">
+<span>3</span>
+<div>
+<strong>Complete</strong>
+<small>Review your form</small>
+</div>
+</div>
+</div>
+<div class="upload-view" id="uploadView">
+<div class="section-intro">
+<p class="eyebrow">STEP 1</p>
+<h2>Upload your form</h2>
+<p>Choose an image or PDF of the medical form you want to autofill.</p>
+</div>
+<div class="drop-zone" id="dropZone">
+<input
+    type="file"
+    id="fileInput"
+    accept=".pdf,.png,.jpg,.jpeg"
+>
+<div class="upload-icon">↑</div>
+<h3>Drop your form here</h3>
+<p>or choose a file from your device</p>
+<button class="choose-button" id="chooseButton" type="button">
+    Choose form
+</button>
+<span class="file-types">PDF, JPG, JPEG or PNG · Maximum 10 MB</span>
+</div>
+<div class="selected-file" id="selectedFile" hidden>
+<div class="file-icon" id="fileIcon">PDF</div>
+<div class="file-details">
+<strong id="fileName">form.pdf</strong>
+<span id="fileSize">2.4 MB</span>
+</div>
+<button class="remove-button" id="removeButton" type="button">Remove</button>
+</div>
+<div class="consent-note">
+<span class="note-icon">✓</span>
+<div>
+<strong>Your profile will be used</strong>
+<p>Only information already available in your consented identity profile will be used for autofill.</p>
+</div>
+</div>
+<button class="start-button" id="startButton" type="button" disabled>
+<span>Start autofill</span>
+<span>→</span>
+</button>
+</div>
+<div class="processing-view" id="processingView" hidden>
+<div class="loader-wrap">
+<div class="loader"></div>
+</div>
+<p class="eyebrow">PROCESSING DOCUMENT</p>
+<h2>We're filling your form</h2>
+<p class="processing-text">Please wait while AutoForm reads the form and matches it with your profile information.</p>
+<div class="progress-box">
+<div class="progress-header">
+<span id="processingStatus">Reading document...</span>
+<span id="progressPercent">0%</span>
+</div>
+<div class="progress-track">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+</div>
+<div class="processing-list">
+<div class="processing-item" id="process1">
+<span class="process-check">✓</span>
+<span>Reading document structure</span>
+</div>
+<div class="processing-item" id="process2">
+<span class="process-check">✓</span>
+<span>Detecting form fields</span>
+</div>
+<div class="processing-item" id="process3">
+<span class="process-check">✓</span>
+<span>Matching profile information</span>
+</div>
+<div class="processing-item" id="process4">
+<span class="process-check">✓</span>
+<span>Generating completed form</span>
+</div>
+</div>
+</div>
+<div class="result-view" id="resultView" hidden>
+<div class="result-icon">✓</div>
+<p class="eyebrow">AUTOFILL COMPLETE</p>
+<h2>Your form is ready</h2>
+<p class="result-text">AutoForm successfully processed your document using your consented profile information.</p>
+<div class="result-file">
+<div class="file-icon">PDF</div>
+<div>
+<strong id="resultFileName">Completed form.pdf</strong>
+<span>Ready for review</span>
+</div>
+</div>
+<div class="result-actions">
+<button class="secondary-button" id="newFormButton" type="button">Fill another form</button>
+<button class="download-button" id="downloadButton" type="button">Download form <span>↓</span></button>
+</div>
+<div class="review-note">
+<span>i</span>
+<p>Please review the completed form before submitting it.</p>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<span>AutoForm</span>
+<span>Secure identity • Consent-based autofill</span>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="autofill.js"></script>
 <script src="../../js/navigation.js"></script>
 </body>
 </html>

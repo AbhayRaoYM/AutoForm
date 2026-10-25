@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const phoneError = document.getElementById("phoneError");
     const passwordError = document.getElementById("passwordError");
     const formError = document.getElementById("formError");
+    const attemptWarning = document.getElementById("attemptWarning");
 
     const loginButton = document.getElementById("loginButton");
     const loginButtonText = document.getElementById("loginButtonText");
@@ -17,10 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const showPasswordButton = document.getElementById("showPassword");
 
+    // Lockout modal elements
+    const lockoutModal = document.getElementById("lockoutModal");
+    const lockoutCountdown = document.getElementById("lockoutCountdown");
+    const lockoutDismissBtn = document.getElementById("lockoutDismissBtn");
+    const lockoutBackdrop = document.getElementById("lockoutBackdrop");
+
+    let lockoutTimer = null;
+
     function clearErrors() {
         phoneError.textContent = "";
         passwordError.textContent = "";
         formError.textContent = "";
+        if (attemptWarning) {
+            attemptWarning.textContent = "";
+            attemptWarning.hidden = true;
+        }
 
         phoneInput.classList.remove("invalid");
         passwordInput.classList.remove("invalid");
@@ -53,15 +66,74 @@ document.addEventListener("DOMContentLoaded", () => {
         loginSpinner.hidden = !loading;
     }
 
+    function setInputsDisabled(disabled) {
+        phoneInput.disabled = disabled;
+        passwordInput.disabled = disabled;
+        loginButton.disabled = disabled;
+        if (showPasswordButton) {
+            showPasswordButton.disabled = disabled;
+        }
+    }
+
+    function startLockoutCountdown(totalSeconds) {
+        if (lockoutTimer) {
+            clearInterval(lockoutTimer);
+        }
+
+        let secondsLeft = Math.max(1, totalSeconds || 900);
+        setInputsDisabled(true);
+
+        function updateDisplay() {
+            const minutes = Math.floor(secondsLeft / 60);
+            const seconds = secondsLeft % 60;
+            const displayStr = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+            if (lockoutCountdown) {
+                lockoutCountdown.textContent = displayStr;
+            }
+
+            if (secondsLeft <= 0) {
+                clearInterval(lockoutTimer);
+                lockoutTimer = null;
+                closeLockoutModal();
+                setInputsDisabled(false);
+                if (formError) {
+                    formError.textContent = "Lockout period expired. You may now attempt to sign in again.";
+                    formError.style.color = "var(--navy)";
+                }
+            } else {
+                secondsLeft--;
+            }
+        }
+
+        updateDisplay();
+        lockoutTimer = setInterval(updateDisplay, 1000);
+    }
+
+    function openLockoutModal(remainingSeconds) {
+        if (!lockoutModal) return;
+        lockoutModal.classList.add("active");
+        lockoutModal.setAttribute("aria-hidden", "false");
+        startLockoutCountdown(remainingSeconds);
+    }
+
+    function closeLockoutModal() {
+        if (!lockoutModal) return;
+        lockoutModal.classList.remove("active");
+        lockoutModal.setAttribute("aria-hidden", "true");
+    }
+
+    if (lockoutDismissBtn) {
+        lockoutDismissBtn.addEventListener("click", closeLockoutModal);
+    }
+    if (lockoutBackdrop) {
+        lockoutBackdrop.addEventListener("click", closeLockoutModal);
+    }
+
     showPasswordButton.addEventListener("click", () => {
-        const isPassword =
-            passwordInput.type === "password";
-
-        passwordInput.type =
-            isPassword ? "text" : "password";
-
-        showPasswordButton.textContent =
-            isPassword ? "Hide" : "Show";
+        const isPassword = passwordInput.type === "password";
+        passwordInput.type = isPassword ? "text" : "password";
+        showPasswordButton.textContent = isPassword ? "Hide" : "Show";
     });
 
     phoneInput.addEventListener("input", clearErrors);
@@ -83,24 +155,57 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 body: JSON.stringify({
                     phone: phoneInput.value.trim(),
-                    password: passwordInput.value
-                })
+                    password: passwordInput.value,
+                }),
             });
 
             if (!data.access_token) {
-                throw new Error(
-                    "Login succeeded, but no access token was returned."
-                );
+                throw new Error("Login succeeded, but no access token was returned.");
             }
 
             saveAccessToken(data.access_token);
+            if (data.refresh_token && typeof saveRefreshToken === "function") {
+                saveRefreshToken(data.refresh_token);
+            } else if (data.refresh_token) {
+                localStorage.setItem("refresh_token", data.refresh_token);
+            }
 
-            window.location.href =
-                "../dashboard/dashboard.html";
+            window.location.href = "../dashboard/dashboard.html";
 
         } catch (error) {
-            formError.textContent =
-                error.message || "Unable to sign in.";
+            console.error("Login attempt failed:", error);
+
+            const status = error.status || 0;
+            const errData = error.data || error.payload || {};
+            const detail = typeof error.detail === "object" ? error.detail : (errData.detail || {});
+
+            const isLocked = status === 423 || detail.locked === true || errData.locked === true;
+            const isConcurrentBlocked = status === 409 || detail.error === "CONCURRENT_SESSION_BLOCKED" || errData.error === "CONCURRENT_SESSION_BLOCKED";
+
+            if (isLocked) {
+                const remaining = detail.remaining_seconds || errData.remaining_seconds || 900;
+                openLockoutModal(remaining);
+                if (formError) {
+                    formError.textContent = detail.message || "Account temporarily locked.";
+                }
+            } else if (isConcurrentBlocked) {
+                if (formError) {
+                    formError.textContent = detail.message || "This account is currently active on another device or platform. Please sign out from that device first.";
+                    formError.style.color = "var(--error)";
+                }
+            } else {
+                const attemptsLeft = detail.attempts_left !== undefined ? detail.attempts_left : errData.attempts_left;
+
+                if (attemptsLeft !== undefined && attemptsLeft <= 3 && attemptWarning) {
+                    attemptWarning.textContent = `Warning: ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining before temporary account lockout.`;
+                    attemptWarning.hidden = false;
+                }
+
+                if (formError) {
+                    formError.textContent = (typeof detail === "string" ? detail : detail.message) || error.message || "Invalid phone or password.";
+                    formError.style.color = "var(--error)";
+                }
+            }
 
         } finally {
             setLoading(false);

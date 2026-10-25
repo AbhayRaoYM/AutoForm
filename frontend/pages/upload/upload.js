@@ -13,42 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------------------------------------------------
 
     const avatarButton = document.getElementById("avatarButton");
-    const userMenu = document.getElementById("userMenu");
     const logoutButton = document.getElementById("logoutButton");
 
-    if (avatarButton && userMenu) {
-        avatarButton.setAttribute("aria-label", "Account menu");
-        avatarButton.setAttribute("aria-haspopup", "true");
-        avatarButton.setAttribute("aria-expanded", "false");
-
-        avatarButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-
-            userMenu.hidden = !userMenu.hidden;
-
-            avatarButton.setAttribute(
-                "aria-expanded",
-                String(!userMenu.hidden)
-            );
-        });
-
-        document.addEventListener("click", (event) => {
-            if (
-                !userMenu.contains(event.target) &&
-                !avatarButton.contains(event.target)
-            ) {
-                userMenu.hidden = true;
-                avatarButton.setAttribute("aria-expanded", "false");
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                userMenu.hidden = true;
-                avatarButton.setAttribute("aria-expanded", "false");
-            }
-        });
-
+    if (avatarButton) {
         // Fetch the profile and set the avatar initial.
         async function loadAvatarInitial() {
             try {

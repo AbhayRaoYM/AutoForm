@@ -37,8 +37,19 @@
         </nav>
 
         <div class="user-area">
-          <span>Welcome</span>
-          <button class="avatar" type="button">M</button>
+          <button
+            style="cursor: pointer;"
+            class="avatar"
+            id="avatarButton"
+            type="button"
+            aria-label="Account menu"
+          >
+            U
+          </button>
+          <div class="user-menu" id="userMenu" hidden>
+            <a href="../profile/profile.html">Profile</a>
+            <button id="logoutButton" type="button">Sign out</button>
+          </div>
         </div>
       </div>
     </header>

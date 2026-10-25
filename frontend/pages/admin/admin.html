@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AutoForm — Admin Console</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../../css/navigation.css">
+
+    <!-- AutoForm favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16.png">
+    <link rel="shortcut icon" href="/favicons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="topbar-inner">
+
+        <a class="brand" href="../dashboard/dashboard.html">
+            <span class="brand-mark">A</span>
+            <span>AutoForm</span>
+        </a>
+
+        <nav class="nav">
+            <a href="../dashboard/dashboard.html">Dashboard</a>
+            <a href="../upload/upload.html">Documents</a>
+            <a href="../autofill/autofill.html">Forms</a>
+            <a href="../profile/profile.html">Profile</a>
+            <a class="active" href="admin.html">Admin</a>
+        </nav>
+
+        <div class="user-area">
+            <span class="admin-badge">Admin</span>
+
+            <button
+                style="cursor: pointer;"
+                class="avatar"
+                id="avatarButton"
+                type="button"
+                aria-label="User menu"
+            >
+                A
+            </button>
+
+            <div
+                class="user-menu"
+                id="userMenu"
+                hidden
+            >
+                <a href="../profile/profile.html">
+                    Profile
+                </a>
+
+                <button id="logoutButton" type="button">
+                    Sign out
+                </button>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+<main class="page">
+
+    <section class="hero">
+        <div>
+            <p class="eyebrow">SYSTEM GOVERNANCE & SECURITY</p>
+            <h1>Admin Console</h1>
+            <p>
+                Monitor system security, manage user access states, unlock accounts, and review immutable audit records.
+            </p>
+        </div>
+
+        <div class="zk-badge">
+            <span class="zk-icon">🛡️</span>
+            <div>
+                <strong>Zero-Knowledge Boundary</strong>
+                <p>Private user data (names, Aadhaar, PAN) remains client/envelope-encrypted and unreadable to administrators.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Overview -->
+    <section class="metrics-grid">
+        <div class="metric-card">
+            <span class="metric-label">Total Users</span>
+            <div class="metric-value" id="statTotalUsers">—</div>
+            <span class="metric-sub" id="statAdminRatio">Loading counts...</span>
+        </div>
+
+        <div class="metric-card">
+            <span class="metric-label">User Accounts</span>
+            <div class="metric-value" id="statPatients">—</div>
+            <span class="metric-sub">Standard user profiles</span>
+        </div>
+
+        <div class="metric-card">
+            <span class="metric-label">Locked Accounts</span>
+            <div class="metric-value warn-value" id="statLockedUsers">—</div>
+            <span class="metric-sub" id="statLockedSub">0 active lockouts</span>
+        </div>
+
+        <div class="metric-card">
+            <span class="metric-label">Total Audit Events</span>
+            <div class="metric-value" id="statAuditEvents">—</div>
+            <span class="metric-sub" id="statFailedLogins">0 failed attempts</span>
+        </div>
+    </section>
+
+    <!-- User Management Section -->
+    <section class="section-card">
+        <div class="section-header">
+            <div>
+                <h2>User Management</h2>
+                <p class="section-desc">Manage authentication states, unlock accounts, and promote administrators.</p>
+            </div>
+            <button class="btn-secondary" id="refreshUsersBtn" type="button">
+                🔄 Refresh Users
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User Identifier</th>
+                        <th>Role</th>
+                        <th>Account Status</th>
+                        <th>Failed Attempts</th>
+                        <th>Lockout Remaining</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="7" class="loading-cell">Loading user records...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Global Audit Log Trail Section -->
+    <section class="section-card">
+        <div class="section-header">
+            <div>
+                <h2>Global Audit Trail</h2>
+                <p class="section-desc">Immutable append-only security logs for authentication, encryption, and admin actions.</p>
+            </div>
+            <button class="btn-secondary" id="refreshAuditBtn" type="button">
+                🔄 Refresh Logs
+            </button>
+        </div>
+
+        <div class="table-container table-scroll-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action Event</th>
+                        <th>Status</th>
+                        <th>Actor ID</th>
+                        <th>IP Address</th>
+                        <th>Event Details</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    <tr>
+                        <td colspan="6" class="loading-cell">Loading audit logs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<!-- Action Toast / Notice -->
+<div id="adminToast" class="admin-toast" hidden role="alert" aria-live="polite"></div>
+
+<script src="../../js/api.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/navigation.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>
